@@ -1,0 +1,374 @@
+<!doctype html>
+<html class="light" lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Client</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#f8f9ff",
+            "surface-container": "#e5eeff",
+            "surface-container-low": "#eff4ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "surface-variant": "#d3e4fe",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#464555",
+            "primary": "#3525cd",
+            "on-primary": "#ffffff",
+            "primary-container": "#4f46e5",
+            "on-primary-container": "#dad7ff",
+            "secondary": "#006b5f",
+            "secondary-container": "#6df5e1",
+            "on-secondary-container": "#006f64",
+            "outline": "#777587",
+            "outline-variant": "#c7c4d8",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "tertiary": "#684000",
+            "tertiary-fixed": "#ffddb8"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          spacing: {
+            xs: "0.25rem",
+            sm: "0.5rem",
+            md: "1rem",
+            lg: "1.5rem",
+            xl: "2.5rem",
+            "container-max": "1280px"
+          },
+          fontFamily: {
+            inter: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css?v=3">
+</head>
+
+<body class="bg-surface text-on-surface font-inter overflow-x-hidden">
+  <nav class="bg-surface/90 backdrop-blur-md border-b border-outline-variant shadow-sm sticky top-0 z-50">
+    <div class="flex items-center justify-between gap-md px-md py-sm max-w-container-max mx-auto w-full">
+      <div class="flex items-center gap-lg min-w-0">
+        <button id="mobileMenuButton" class="lg:hidden icon-button" aria-label="메뉴 열기">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div>
+          <div class="font-bold text-primary text-[22px] leading-tight">Community</div>
+          <div id="connectionLabel" class="text-xs text-on-surface-variant truncate">API 연결 대기</div>
+        </div>
+        <div class="hidden md:flex gap-md">
+          <button class="nav-link active" data-sort-shortcut="latest">최신순</button>
+          <button class="nav-link" data-sort-shortcut="likes">추천순</button>
+          <button class="nav-link" data-sort-shortcut="views">조회순</button>
+        </div>
+      </div>
+
+      <div
+        class="hidden sm:flex items-center bg-surface-container rounded-full px-md py-xs border border-outline-variant min-w-[220px] md:min-w-[320px]">
+        <span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+        <input id="searchInput" class="bg-transparent border-none focus:ring-0 text-sm w-full" placeholder="게시글 검색"
+          type="text">
+      </div>
+
+      <div class="flex items-center gap-sm">
+        <button id="openComposerButton"
+          class="bg-primary text-on-primary px-md py-xs rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all">
+          글쓰기
+        </button>
+        <button id="statusButton" class="icon-button" aria-label="서버 상태 확인">
+          <span class="material-symbols-outlined">sync</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-container-max mx-auto flex flex-col lg:flex-row gap-xl px-md py-lg min-h-screen">
+    <aside id="sidebar" class="hidden lg:flex flex-col gap-sm w-64 sticky top-20 h-[calc(100vh-100px)]">
+      <div class="mb-md px-md">
+        <h2 class="font-black text-primary text-xl">Forums</h2>
+        <p class="text-xs text-on-surface-variant">Community Pulse</p>
+      </div>
+      <nav class="flex flex-col gap-xs" id="categoryNav">
+        <button class="side-link active" data-category="">
+          <span class="material-symbols-outlined">home</span>
+          <span>전체</span>
+        </button>
+        <button class="side-link" data-category="자유">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span>자유</span>
+        </button>
+        <button class="side-link" data-category="질문">
+          <span class="material-symbols-outlined">quiz</span>
+          <span>질문</span>
+        </button>
+        <button class="side-link" data-category="정보">
+          <span class="material-symbols-outlined">info</span>
+          <span>정보</span>
+        </button>
+        <button class="side-link" data-category="후기">
+          <span class="material-symbols-outlined">favorite</span>
+          <span>후기</span>
+        </button>
+        <button class="side-link" data-category="기술">
+          <span class="material-symbols-outlined">memory</span>
+          <span>기술</span>
+        </button>
+      </nav>
+      <div class="mt-auto p-md rounded-xl bg-surface-container-low border border-outline-variant">
+        <label class="field-label">API URL</label>
+        <input id="baseUrlInput" class="compact-input mb-sm" value="http://127.0.0.1:8000">
+        <label class="field-label">Anonymous ID</label>
+        <input id="anonymousIdInput" class="compact-input">
+      </div>
+    </aside>
+
+    <section class="flex-1 max-w-4xl mx-auto w-full">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-md">
+        <nav class="flex items-center gap-xs text-xs text-on-surface-variant min-w-0">
+          <span>Home</span>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span id="breadcrumbCategory">전체</span>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span id="breadcrumbPost" class="text-on-surface font-semibold truncate">게시글 선택</span>
+        </nav>
+        <div class="flex items-center gap-sm">
+          <select id="sortSelect" class="select-compact">
+            <option value="latest">최신순</option>
+            <option value="likes">추천순</option>
+            <option value="views">조회순</option>
+          </select>
+          <button id="refreshPostsButton" class="icon-button" aria-label="목록 새로고침">
+            <span class="material-symbols-outlined">refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="composerPanel" class="panel mb-lg hidden">
+        <div class="flex items-center justify-between mb-md">
+          <h2 class="font-bold text-lg">새 게시글</h2>
+          <button id="closeComposerButton" class="icon-button" aria-label="닫기">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="postForm" class="space-y-md">
+          <div class="grid sm:grid-cols-[1fr_160px] gap-md">
+            <input id="postTitleInput" class="form-input" placeholder="제목" required maxlength="200">
+            <select id="postCategoryInput" class="form-input" required>
+              <option>자유</option>
+              <option>질문</option>
+              <option>정보</option>
+              <option>후기</option>
+              <option>기술</option>
+            </select>
+          </div>
+          <textarea id="postContentInput" class="form-textarea min-h-[150px]" placeholder="내용" required></textarea>
+          <div class="flex justify-end gap-sm">
+            <button type="reset" class="button-secondary">초기화</button>
+            <button type="submit" class="button-primary">등록</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="emptyState" class="panel text-center text-on-surface-variant hidden">
+        게시글을 작성하거나 목록에서 선택하세요.
+      </div>
+
+      <article id="postDetail"
+        class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden mb-xl hidden">
+        <header class="p-lg md:p-xl border-b border-outline-variant/50">
+          <div class="flex items-center gap-md mb-md">
+            <div class="avatar">
+              <span class="material-symbols-outlined">account_circle</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-on-surface">
+                <span id="postAuthor" class="font-semibold"></span>
+                <span class="text-on-surface-variant"> in </span>
+                <span id="postCategory" class="text-primary font-bold"></span>
+              </p>
+              <p id="postTime" class="text-xs text-on-surface-variant"></p>
+            </div>
+            <div class="ml-auto flex gap-xs">
+              <button id="editPostButton" class="icon-button" aria-label="게시글 수정">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button id="deletePostButton" class="icon-button danger" aria-label="게시글 삭제">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </div>
+          <h1 id="postTitle" class="text-[28px] md:text-[36px] font-bold leading-tight mb-md break-words"></h1>
+          <div class="flex flex-wrap gap-sm">
+            <span id="categoryBadge" class="tag"></span>
+            <span id="postIdBadge" class="tag neutral"></span>
+          </div>
+        </header>
+
+        <div class="p-lg md:p-xl space-y-lg text-on-surface leading-relaxed">
+          <p id="postContent" class="text-lg leading-relaxed whitespace-pre-wrap break-words"></p>
+          <div id="llmResultBox" class="rounded-xl border border-outline-variant bg-surface-container-low p-md hidden">
+            <div class="flex items-center gap-sm text-primary font-semibold mb-sm">
+              <span class="material-symbols-outlined">auto_awesome</span>
+              <span>LLM 결과</span>
+            </div>
+            <pre id="llmResult" class="whitespace-pre-wrap break-words text-sm"></pre>
+          </div>
+        </div>
+
+        <footer
+          class="px-lg py-md md:px-xl border-t border-outline-variant/50 flex items-center justify-between bg-surface-container-lowest">
+          <div class="flex items-center gap-md">
+            <button id="likePostButton" class="engage-button">
+              <span class="material-symbols-outlined">thumb_up</span>
+              <span id="postLikeCount">0</span>
+            </button>
+            <button id="commentFocusButton" class="engage-button">
+              <span class="material-symbols-outlined">mode_comment</span>
+              <span id="commentCount">0</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-sm">
+            <button id="summarizeButton" class="button-secondary">
+              <span class="material-symbols-outlined text-[18px]">summarize</span>
+              요약
+            </button>
+          </div>
+        </footer>
+      </article>
+
+      <section id="editPanel" class="panel mb-xl hidden">
+        <div class="flex items-center justify-between mb-md">
+          <h2 class="font-bold text-lg">게시글 수정</h2>
+          <button id="cancelEditButton" class="icon-button" aria-label="수정 닫기">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="editForm" class="space-y-md">
+          <div class="grid sm:grid-cols-[1fr_160px] gap-md">
+            <input id="editTitleInput" class="form-input" placeholder="제목" required maxlength="200">
+            <select id="editCategoryInput" class="form-input" required>
+              <option>자유</option>
+              <option>질문</option>
+              <option>정보</option>
+              <option>후기</option>
+              <option>기술</option>
+            </select>
+          </div>
+          <textarea id="editContentInput" class="form-textarea min-h-[150px]" required></textarea>
+          <div class="flex justify-end gap-sm">
+            <button type="button" id="cancelEditButtonBottom" class="button-secondary">취소</button>
+            <button type="submit" class="button-primary">저장</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="commentsSection" class="space-y-lg hidden">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold text-xl">댓글 <span id="commentCountTitle" class="text-primary">0</span></h2>
+          <button id="refreshCommentsButton" class="button-secondary">
+            <span class="material-symbols-outlined text-[18px]">refresh</span>
+            새로고침
+          </button>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-md shadow-sm">
+          <form id="commentForm" class="flex gap-md">
+            <div class="avatar small">
+              <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div id="replyNotice" class="reply-notice hidden mb-sm">
+                <span class="material-symbols-outlined text-[18px]">subdirectory_arrow_right</span>
+                <span id="replyNoticeText">답글 작성 중</span>
+                <button type="button" id="cancelReplyButton" class="reply-cancel">취소</button>
+              </div>
+              <div class="mb-sm">
+                <textarea id="commentContentInput" class="form-textarea min-h-[110px]" placeholder="댓글을 작성하세요"
+                  required></textarea>
+                <input id="parentCommentInput" type="hidden">
+              </div>
+              <div class="flex items-center justify-between gap-sm">
+                <button type="button" id="toxicCheckButton" class="button-secondary">
+                  <span class="material-symbols-outlined text-[18px]">shield</span>
+                  악플 검사
+                </button>
+                <button id="commentSubmitButton" type="submit" class="button-primary">댓글 등록</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div id="commentList" class="space-y-lg"></div>
+      </section>
+    </section>
+
+    <aside class="hidden xl:flex flex-col gap-lg w-80">
+      <div class="bg-surface-container-low rounded-xl p-md border border-outline-variant">
+        <h3 class="text-xs text-on-surface-variant uppercase tracking-wider mb-md font-semibold">About Community</h3>
+        <div class="flex items-center gap-md mb-md">
+          <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-on-primary">
+            <span class="material-symbols-outlined text-[32px]">forum</span>
+          </div>
+          <div>
+            <p class="font-semibold text-xl">루이스의 커뮤니티</p>
+            <p id="statsText" class="text-xs text-on-surface-variant">0 posts</p>
+          </div>
+        </div>
+        <p class="text-sm text-on-surface-variant mb-lg leading-relaxed">
+          게시글, 댓글, 추천, LLM 요약과 악플 검사를 한 화면에서 테스트합니다.
+        </p>
+        <button id="rightComposerButton"
+          class="w-full bg-primary text-on-primary py-xs rounded-lg font-semibold hover:opacity-90 transition-all">글쓰기</button>
+      </div>
+
+      <div class="space-y-md">
+        <h3 class="text-xs text-on-surface-variant uppercase tracking-wider px-sm font-semibold">API Response</h3>
+        <div id="toast"
+          class="rounded-xl border border-outline-variant bg-surface-container-low p-md text-sm text-on-surface-variant">
+          대기 중</div>
+        <pre id="responseOutput" class="response-box">{}</pre>
+      </div>
+    </aside>
+  </main>
+
+  <nav
+    class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center bg-surface px-4 py-2 border-t border-outline-variant lg:hidden shadow-lg">
+    <button class="bottom-link active" data-category="">
+      <span class="material-symbols-outlined">dynamic_feed</span>
+      <span>전체</span>
+    </button>
+    <button class="bottom-link" data-category="기술">
+      <span class="material-symbols-outlined">memory</span>
+      <span>기술</span>
+    </button>
+    <button class="bottom-link" data-category="질문">
+      <span class="material-symbols-outlined">quiz</span>
+      <span>질문</span>
+    </button>
+    <button class="bottom-link" data-category="자유">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span>자유</span>
+    </button>
+  </nav>
+
+  <script src="app.js?v=3"></script>
+</body>
+
+</html>
