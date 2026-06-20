@@ -2,5 +2,7 @@ __pycache__/
 *.py[cod]
 *.db
 *.venv
+.env
+chroma_db/
 *.DS_Store
 *.vscode/
